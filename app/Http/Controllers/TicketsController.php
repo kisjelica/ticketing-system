@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Str;
+use App\Mailers\AppMailer;
 class TicketsController extends Controller
 {
 
@@ -32,7 +34,9 @@ class TicketsController extends Controller
      */
     public function create()
     {
-        //
+        $categories = Category::all();
+
+        return view('tickets.create', compact('categories'));
     }
 
     /**
@@ -41,9 +45,29 @@ class TicketsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, AppMailer $mailer)
     {
-        //
+        $this->validate($request, [
+            'title' => 'required',
+            'category' => 'required',
+            'priority' => 'required',
+            'message' => 'required'
+        ]);
+
+        $ticket = new Ticket([
+            'title' => $request->input('title'),
+            'user_id' => Auth::user()->id,
+            'ticket_id' => strtoupper(Str::random(10)),
+            'category_id' => $request->input('category'),
+            'priority' => $request->input('priority'),
+            'message' => $request->input('message'),
+            'status' => "Open"
+        ]);
+
+        $ticket->save();
+    
+        $mailer->sendTicketInformation(Auth::user(), $ticket);
+        return redirect()->back()->with("status", "A ticket with ID: #$ticket->ticket_id has been opened.");
     }
 
     public function userTickets()

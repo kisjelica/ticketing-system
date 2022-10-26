@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\CommentsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\TicketsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -20,20 +21,19 @@ Route::get('/', function () {
 
 Auth::routes();
 
-
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::get('new-ticket', 'TicketsController@create');
+Route::get('new-ticket', [TicketsController::class, 'create']);
 
-Route::post('new-ticket', 'TicketsController@store');
+Route::post('new-ticket', [TicketsController::class, 'store']);
 
-Route::get('my_tickets', 'TicketsController@userTickets');
+Route::get('my_tickets', [TicketsController::class, 'userTickets']);
 
-Route::get('tickets/{ticket_id}', 'TicketsController@show');
+Route::get('tickets/{ticket_id}', [TicketsController::class, 'show']);
 
-Route::post('comment', 'CommentsController@postComment');
+Route::post('comment', [CommentsController::class, 'postComment']);
 
 Route::group(['prefix' => 'admin', 'middleware' => 'admin'], function () {
-    Route::get('tickets', 'TicketsController@index');
-    Route::post('close_ticket/{ticket_id}', 'TicketsController@close');
+    Route::get('tickets', [TicketsController::class, 'index']);
+    Route::post('close_ticket/{ticket_id}',[TicketsController::class, 'close']);
 });
