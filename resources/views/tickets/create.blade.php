@@ -45,9 +45,9 @@
                             <div class="col-md-6">
                                 <select id="priority" type="" class="form-control" name="priority">
                                     <option value="">Select Priority</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
                                 </select>
                                 @if ($errors->has('priority'))
                                     <span class="help-block">
