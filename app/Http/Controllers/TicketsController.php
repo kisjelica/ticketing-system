@@ -7,14 +7,11 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use App\Mailers\AppMailer;
+
 class TicketsController extends Controller
 {
 
-    public function __construct()
-    {
-     $this->middleware('auth');   
-    }
+  
     /**
      * Display a listing of the resource.
      *
@@ -23,7 +20,17 @@ class TicketsController extends Controller
     public function index()
     {
         $tickets = Ticket::paginate(10);
+        if(Auth::user()->is_admin !== 1) 
+        {
+            return response()->json("Not authorized");
+        }
+        return response()->json($tickets);
+    }
 
+    public function indexView()
+    {
+        $tickets = Ticket::paginate(10);
+        
         return view('tickets.index', compact('tickets'));
     }
 
@@ -45,7 +52,7 @@ class TicketsController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request, AppMailer $mailer)
+    public function store(Request $request)
     {
         $this->validate($request, [
             'title' => 'required',
@@ -66,7 +73,32 @@ class TicketsController extends Controller
 
         $ticket->save();
     
-        $mailer->sendTicketInformation(Auth::user(), $ticket);
+        return response()->json($ticket);
+        //return redirect()->back()->with("status", "A ticket with ID: #$ticket->ticket_id has been opened.");
+    }
+
+    public function storeView(Request $request)
+    {
+        $this->validate($request, [
+            'title' => 'required',
+            'category' => 'required',
+            'priority' => 'required',
+            'message' => 'required'
+        ]);
+
+        $ticket = new Ticket([
+            'title' => $request->input('title'),
+            'user_id' => Auth::user()->id,
+            'ticket_id' => strtoupper(Str::random(10)),
+            'category_id' => $request->input('category'),
+            'priority' => $request->input('priority'),
+            'message' => $request->input('message'),
+            'status' => "Open"
+        ]);
+
+        $ticket->save();
+    
+       // return response()->json($ticket);
         return redirect()->back()->with("status", "A ticket with ID: #$ticket->ticket_id has been opened.");
     }
 
@@ -74,7 +106,18 @@ class TicketsController extends Controller
     {
         $tickets = Ticket::where('user_id', Auth::user()->id)->paginate(10);
 
+        
+
+        return  response()->json($tickets);
+    }
+
+    public function userTicketsView()
+    {
+        $tickets = Ticket::where('user_id', Auth::user()->id)->paginate(10);
+
         return view('tickets.user_tickets', compact('tickets'));
+
+        
     }
 
     /**
@@ -85,9 +128,43 @@ class TicketsController extends Controller
      */
     public function show($ticket_id)
     {
+
+        $user_id = Auth::user()->id;
+        $ticket = Ticket::where('id', $ticket_id)->firstOrFail();
+
+        if($ticket->user_id != $user_id){
+            return response()->json("Not authorized to view this ticket");
+        }
+
+        return response()->json($ticket);
+       
+    }
+
+    public function showView($ticket_id)
+    {
         $ticket = Ticket::where('ticket_id', $ticket_id)->firstOrFail();
 
+       
         return view('tickets.show', compact('ticket'));
+    }
+
+    public function close($ticket_id)
+    {
+        if(Auth::user()->is_admin !== 1) 
+        {
+            return response()->json("Not authorized");
+        }
+
+        $ticket = Ticket::where('id',$ticket_id)->firstOrFail();
+
+        if($ticket->status === "Closed"){
+            return response()->json("Ticket already closed.");
+        }
+        $ticket->status = "Closed";
+        
+        $ticket->save();
+
+        return response()->json($ticket);
     }
 
     /**

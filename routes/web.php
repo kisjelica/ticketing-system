@@ -19,21 +19,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-
-Route::get('new-ticket', [TicketsController::class, 'create']);
-
-Route::post('new-ticket', [TicketsController::class, 'store']);
-
-Route::get('my_tickets', [TicketsController::class, 'userTickets']);
-
-Route::get('tickets/{ticket_id}', [TicketsController::class, 'show']);
-
-Route::post('comment', [CommentsController::class, 'postComment']);
-
-Route::group(['prefix' => 'admin', 'middleware' => 'admin'], function () {
-    Route::get('tickets', [TicketsController::class, 'index']);
-    Route::post('close_ticket/{ticket_id}',[TicketsController::class, 'close']);
-});
+Route::get('tickets', [TicketsController::class, 'indexView']);

@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->integer('ticket_id')->unsigned();
-            $table->integer('user_id')->unsigned();
+            $table->foreignId('ticket_id');
+            $table->foreignId('user_id');
             $table->text('comment');
             $table->timestamps();
         });
